@@ -9,21 +9,22 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@azure/msal-browser": "latest",
-    "@azure/msal-react": "latest",
+    "@azure/msal-browser": "^5.14.0",
+    "@azure/msal-react": "^5.4.5",
     "@fullcalendar/core": "latest",
-    "@fullcalendar/daygrid": "latest",
-    "@fullcalendar/interaction": "latest",
-    "@fullcalendar/react": "latest",
-    "@fullcalendar/timegrid": "latest",
-    "@microsoft/microsoft-graph-client": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/react": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "typescript": "latest"
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
   }
 }
