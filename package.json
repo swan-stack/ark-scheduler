@@ -1,0 +1,29 @@
+{
+  "name": "ark-scheduler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@azure/msal-browser": "latest",
+    "@azure/msal-react": "latest",
+    "@fullcalendar/core": "latest",
+    "@fullcalendar/daygrid": "latest",
+    "@fullcalendar/interaction": "latest",
+    "@fullcalendar/react": "latest",
+    "@fullcalendar/timegrid": "latest",
+    "@microsoft/microsoft-graph-client": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
