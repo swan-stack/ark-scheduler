@@ -23,10 +23,12 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: development
         env:
           VITE_MSAL_CLIENT_ID: 9b65c876-b07d-4e77-9675-2e501988226f
           VITE_MSAL_TENANT_ID: 277c521d-14bc-4915-ae98-e465db3e265f
