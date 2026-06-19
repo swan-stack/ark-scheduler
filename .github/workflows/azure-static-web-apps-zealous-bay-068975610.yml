@@ -19,14 +19,14 @@ jobs:
         with:
           node-version: 20
 
-      - name: Pin npm
-        run: npm install --include=dev --no-audit --no-fund -g npm@10.8.2
-
       - name: Install
-        run: npm install --include=dev --no-audit --no-fund --include=dev --no-audit --no-fund
+        run: |
+          npm install --no-audit --no-fund
+          test -f node_modules/.bin/vite
+          test -f node_modules/.bin/tsc
 
       - name: Build
-        run: npm run build
+        run: ./node_modules/.bin/tsc && ./node_modules/.bin/vite build
         env:
           NODE_ENV: development
           VITE_MSAL_CLIENT_ID: 9b65c876-b07d-4e77-9675-2e501988226f
