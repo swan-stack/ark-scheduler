@@ -18,10 +18,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+
+      - name: Pin npm
+        run: npm install -g npm@10.8.2
 
       - name: Install
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Build
         run: npm run build
