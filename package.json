@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npx tsc && npx vite build",
+    "build": "npx -y -p typescript tsc && npx -y -p vite vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
