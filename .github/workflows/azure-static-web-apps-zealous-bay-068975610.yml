@@ -19,14 +19,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install
+      - name: Setup pnpm
         run: |
-          npm install --no-audit --no-fund
-          test -f node_modules/.bin/vite
-          test -f node_modules/.bin/tsc
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+
+      - name: Install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
-        run: ./node_modules/.bin/tsc && ./node_modules/.bin/vite build
+        run: pnpm exec tsc && pnpm exec vite build
         env:
           NODE_ENV: development
           VITE_MSAL_CLIENT_ID: 9b65c876-b07d-4e77-9675-2e501988226f
