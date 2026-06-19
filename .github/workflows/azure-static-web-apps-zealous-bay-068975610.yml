@@ -4,20 +4,18 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || github.event.action != 'closed'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -33,13 +31,12 @@ jobs:
           VITE_MSAL_TENANT_ID: 277c521d-14bc-4915-ae98-e465db3e265f
           VITE_EXCLUDED_EMAILS: info@arknpartners.com,admin@arknpartners.com,fund_ops@arknpartners.com,ags@arknpartners.com,finance@arknpartners.com,scan_1@arknpartners.com,scan_2@arknpartners.com,conference1@arknpartners.com,h-rubicon.pef@arknpartners.com,media@arknpartners.com,news_run@arknpartners.com,newsrun@arknpartners.com,scan@arknpartners.com,hr_vcg@arknpartners.com
 
-- name: Deploy
-  uses: Azure/static-web-apps-deploy@v1
-  with:
-    azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_BAY_068975610 }}
-    repo_token: ${{ secrets.GITHUB_TOKEN }}
-    action: upload
-    app_location: "/"
-    output_location: "dist"
-    skip_app_build: true
-    
+      - name: Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_BAY_068975610 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: /
+          output_location: dist
+          skip_app_build: true
