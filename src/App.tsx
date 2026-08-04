@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import FullCalendar from "@fullcalendar/react";
-import type { EventClickArg, EventMountArg } from "@fullcalendar/core";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -406,11 +405,11 @@ export default function App() {
             events={events}
             height="100%"
             nowIndicator
-            eventClick={(info: EventClickArg) => {
+            eventClick={(info: any) => {
               const slot = info.event.extendedProps.slot as FreeSlot;
               setActiveSlot(slot);
             }}
-            eventDidMount={(info: EventMountArg) => {
+            eventDidMount={(info: any) => {
               const slot = info.event.extendedProps.slot as FreeSlot;
               info.el.title = tooltip(slot);
             }}
