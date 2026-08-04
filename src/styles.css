@@ -49,11 +49,11 @@ input { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px
 .legend { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: #4b5563; font-size: 12px; }
 .box { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .box.normal { background: #607d9b; }
-.box.near { background: #a4865e; }
-.box.tight { background: #9a6666; }
+.box.near { background: #bf7f32; }
+.box.tight { background: #bb4a4a; }
 .fc .slot-normal { background: #607d9b; border-color: #607d9b; }
-.fc .slot-near { background: #a4865e; border-color: #a4865e; }
-.fc .slot-tight { background: #9a6666; border-color: #9a6666; }
+.fc .slot-near { background: #bf7f32; border-color: #bf7f32; }
+.fc .slot-tight { background: #bb4a4a; border-color: #bb4a4a; }
 .fc-event { cursor: pointer; }
 .fc .fc-toolbar-title { font-size: 18px; }
 @media (max-width: 1240px) { .layout-three { grid-template-columns: 280px 320px minmax(460px, 1fr); } }
