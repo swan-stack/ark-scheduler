@@ -27,6 +27,12 @@ const defaultRule: SchedulerRule = {
   minAvailable: 2,
 };
 
+const visibleUserEmailSet = new Set(visibleUserEmails.map(email => email.toLowerCase()));
+
+function getUserEmail(user: OrgUser) {
+  return String(user.mail || user.userPrincipalName || "").toLowerCase();
+}
+
 export default function App() {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -44,15 +50,17 @@ export default function App() {
   const [activeSlot, setActiveSlot] = useState<FreeSlot | null>(null);
 
   const selectedIds = useMemo(() => new Set(selectedUsers.map(u => u.id)), [selectedUsers]);
+  const visibleOrgUserCount = useMemo(
+    () => orgUsers.filter(user => visibleUserEmailSet.has(getUserEmail(user))).length,
+    [orgUsers],
+  );
   const sortedPeople = useMemo(() => {
     const map = new Map<string, OrgUser>();
     orgUsers.forEach(u => map.set(u.id, u));
     selectedUsers.forEach(u => map.set(u.id, u));
     const q = query.trim().toLowerCase();
-    const visibleSet = new Set(visibleUserEmails.map(v => v.toLowerCase()));
     const people = [...map.values()].filter(u => {
-      const email = String(u.mail || u.userPrincipalName || "").toLowerCase();
-      if (!visibleSet.has(email)) return false;
+      if (!visibleUserEmailSet.has(getUserEmail(u))) return false;
       if (!q) return true;
       return [u.displayName, u.mail, u.userPrincipalName].filter(Boolean).some(v => String(v).toLowerCase().includes(q));
     });
@@ -81,7 +89,8 @@ export default function App() {
     try {
       const users = await listOrgUsers(client);
       setOrgUsers(users);
-      setMessage(`조직 사용자 ${users.length}명을 불러왔습니다. 참석자를 클릭해 선택하세요.`);
+      const visibleCount = users.filter(user => visibleUserEmailSet.has(getUserEmail(user))).length;
+      setMessage(`조직 계정 ${users.length}명 확인, 참석자 목록에는 중앙 설정된 ${visibleCount}명을 표시합니다.`);
     } catch (e: any) {
       setMessage(`조직 사용자 조회 실패: ${e.message || e}. 아래 권한 재승인 후 다시 조회하세요.`);
     } finally {
@@ -221,7 +230,7 @@ export default function App() {
 
         <aside className="panel people-panel">
           <div className="panel-title-row">
-            <h2>참석자 <span className="count-badge">{sortedPeople.length}/{orgUsers.length}</span></h2>
+            <h2>참석자 <span className="count-badge">{sortedPeople.length}/{visibleOrgUserCount}</span></h2>
             <button className="text-button" onClick={clearSelected} disabled={selectedUsers.length === 0}>전체 해제</button>
           </div>
           <div className="search-row">

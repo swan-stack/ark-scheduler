@@ -266,6 +266,7 @@ button.add {
 .layout-three {
   grid-template-columns: 250px 330px minmax(680px, 1fr) !important;
   gap: 16px !important;
+  align-items: stretch !important;
   padding-right: 28px !important;
   box-sizing: border-box !important;
 }
@@ -273,6 +274,7 @@ button.add {
 .calendar-panel {
   margin-right: 24px !important;
   overflow: hidden !important;
+  align-self: stretch;
   box-sizing: border-box !important;
 }
 
