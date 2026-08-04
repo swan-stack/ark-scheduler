@@ -33,6 +33,12 @@ function getUserEmail(user: OrgUser) {
   return String(user.mail || user.userPrincipalName || "").toLowerCase();
 }
 
+type PersonalGroup = {
+  id: string;
+  name: string;
+  emails: string[];
+};
+
 export default function App() {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -48,8 +54,35 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [activeSlot, setActiveSlot] = useState<FreeSlot | null>(null);
+  const [personalGroups, setPersonalGroups] = useState<PersonalGroup[]>([]);
+  const [presetEditorOpen, setPresetEditorOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+  const [presetEmails, setPresetEmails] = useState<string[]>([]);
 
   const selectedIds = useMemo(() => new Set(selectedUsers.map(u => u.id)), [selectedUsers]);
+  const personalGroupStorageKey = useMemo(
+    () => (account?.username ? `ark-scheduler:personal-groups:${account.username.toLowerCase()}` : ""),
+    [account?.username],
+  );
+  const usersByEmail = useMemo(() => {
+    const map = new Map<string, OrgUser>();
+    orgUsers.forEach(user => map.set(getUserEmail(user), user));
+    return map;
+  }, [orgUsers]);
+  const presetCandidates = useMemo(
+    () =>
+      orgUsers
+        .filter(user => visibleUserEmailSet.has(getUserEmail(user)))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    [orgUsers],
+  );
+  const availableGroups = useMemo(
+    () => [
+      ...customGroups.map((group, index) => ({ ...group, id: `central-${index}`, personal: false })),
+      ...personalGroups.map(group => ({ ...group, personal: true })),
+    ],
+    [personalGroups],
+  );
   const visibleOrgUserCount = useMemo(
     () => orgUsers.filter(user => visibleUserEmailSet.has(getUserEmail(user))).length,
     [orgUsers],
@@ -90,7 +123,7 @@ export default function App() {
       const users = await listOrgUsers(client);
       setOrgUsers(users);
       const visibleCount = users.filter(user => visibleUserEmailSet.has(getUserEmail(user))).length;
-      setMessage(`조직 계정 ${users.length}명 확인, 참석자 목록에는 중앙 설정된 ${visibleCount}명을 표시합니다.`);
+      setMessage(`참석자 목록 ${visibleCount}명을 불러왔습니다. 참석자를 클릭해 선택하세요.`);
     } catch (e: any) {
       setMessage(`조직 사용자 조회 실패: ${e.message || e}. 아래 권한 재승인 후 다시 조회하세요.`);
     } finally {
@@ -107,6 +140,29 @@ export default function App() {
     if (!client) return;
     loadOrgUsers();
   }, [client]);
+
+  useEffect(() => {
+    if (!personalGroupStorageKey) return;
+    try {
+      const raw = window.localStorage.getItem(personalGroupStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) {
+        setPersonalGroups([]);
+        return;
+      }
+      setPersonalGroups(
+        parsed
+          .filter(group => group && typeof group.id === "string" && typeof group.name === "string" && Array.isArray(group.emails))
+          .map(group => ({
+            id: group.id,
+            name: group.name,
+            emails: group.emails.filter((email: unknown) => typeof email === "string"),
+          })),
+      );
+    } catch {
+      setPersonalGroups([]);
+    }
+  }, [personalGroupStorageKey]);
 
   function toggleUser(user: OrgUser) {
     setSelectedUsers(prev => (prev.some(u => u.id === user.id) ? prev.filter(u => u.id !== user.id) : [...prev, user]));
@@ -128,6 +184,52 @@ export default function App() {
     setFreeSlots([]);
     setBusyBlocks([]);
   }
+
+  function getGroupMemberNames(emails: string[]) {
+    return emails.map(email => usersByEmail.get(email.toLowerCase())?.displayName || email);
+  }
+
+  function openPresetEditor() {
+    setPresetName("");
+    setPresetEmails([]);
+    setPresetEditorOpen(true);
+  }
+
+  function closePresetEditor() {
+    setPresetEditorOpen(false);
+    setPresetName("");
+    setPresetEmails([]);
+  }
+
+  function togglePresetEmail(email: string) {
+    setPresetEmails(prev => (prev.includes(email) ? prev.filter(value => value !== email) : [...prev, email]));
+  }
+
+  function storePersonalGroups(groups: PersonalGroup[]) {
+    setPersonalGroups(groups);
+    if (personalGroupStorageKey) {
+      window.localStorage.setItem(personalGroupStorageKey, JSON.stringify(groups));
+    }
+  }
+
+  function savePersonalGroup() {
+    const name = presetName.trim();
+    if (!name || presetEmails.length === 0) return;
+    storePersonalGroups([
+      ...personalGroups,
+      {
+        id: `personal-${Date.now()}`,
+        name,
+        emails: presetEmails,
+      },
+    ]);
+    closePresetEditor();
+  }
+
+  function deletePersonalGroup(id: string) {
+    storePersonalGroups(personalGroups.filter(group => group.id !== id));
+  }
+
   async function findFreeTimes() {
     if (!client || selectedUsers.length === 0) return;
     setLoading(true);
@@ -196,16 +298,38 @@ export default function App() {
           <h2>조건</h2>
           <RuleEditor rule={rule} setRule={setRule} selectedCount={selectedUsers.length} />
 
-          {customGroups.length > 0 && (
+          {availableGroups.length > 0 && (
             <div className="group-buttons">
-              {customGroups.map(group => (
-                <div className="group-button-pair" key={group.name}>
-                  <button className="secondary small" onClick={() => selectGroup(group.emails)}>
+              {availableGroups.map(group => {
+                const memberNames = getGroupMemberNames(group.emails);
+                return (
+                <div className="preset-row" key={group.id}>
+                  <button className="secondary small preset-select" onClick={() => selectGroup(group.emails)}>
                     {group.name}
-                  </button>                </div>
-              ))}
+                  </button>
+                  {group.personal && (
+                    <button
+                      className="preset-delete"
+                      onClick={() => deletePersonalGroup(group.id)}
+                      aria-label={`${group.name} 프리셋 삭제`}
+                      title="프리셋 삭제"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <div className="preset-tooltip" role="tooltip">
+                    <strong>{memberNames.length}명</strong>
+                    {memberNames.map((name, index) => <span key={`${name}-${index}`}>{name}</span>)}
+                  </div>
+                </div>
+                );
+              })}
             </div>
           )}
+
+          <button className="secondary full add-preset-button" onClick={openPresetEditor} disabled={orgUsers.length === 0}>
+            + 프리셋 추가
+          </button>
 
           <button className="primary full" onClick={findFreeTimes} disabled={loading || selectedUsers.length === 0}>
             {loading ? "조회 중" : "공통 빈 시간 찾기"}
@@ -345,6 +469,59 @@ export default function App() {
                   }
                 >
                   Outlook 일정 만들기
+                </button>
+              </div>
+            </div>
+          )}
+
+          {presetEditorOpen && (
+            <div className="slot-modal">
+              <div className="slot-modal-card preset-editor-card">
+                <div className="slot-modal-header">
+                  <h3>새 프리셋 만들기</h3>
+                  <button className="text-button" onClick={closePresetEditor}>닫기</button>
+                </div>
+
+                <label className="preset-name-field">
+                  프리셋 이름
+                  <input
+                    value={presetName}
+                    onChange={event => setPresetName(event.target.value)}
+                    placeholder="예: 월간 투자회의"
+                    maxLength={40}
+                  />
+                </label>
+
+                <div className="preset-editor-heading">
+                  <strong>참석자 선택</strong>
+                  <span>{presetEmails.length}명 선택</span>
+                </div>
+
+                <div className="preset-candidate-list">
+                  {presetCandidates.map(user => {
+                    const email = getUserEmail(user);
+                    return (
+                      <label className="preset-candidate" key={user.id}>
+                        <input
+                          type="checkbox"
+                          checked={presetEmails.includes(email)}
+                          onChange={() => togglePresetEmail(email)}
+                        />
+                        <span>
+                          <strong>{user.displayName}</strong>
+                          <small>{user.mail || user.userPrincipalName}</small>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <button
+                  className="primary full"
+                  onClick={savePersonalGroup}
+                  disabled={!presetName.trim() || presetEmails.length === 0}
+                >
+                  프리셋 저장
                 </button>
               </div>
             </div>
