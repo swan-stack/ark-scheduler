@@ -279,7 +279,7 @@ export default function App() {
             slotMaxTime={`${String(rule.workdayEndHour).padStart(2, "0")}:00:00`}
             weekends={rule.includeWeekends}
             events={events}
-            height="auto"
+            height="100%"
             nowIndicator
             eventClick={info => {
               const slot = info.event.extendedProps.slot as FreeSlot;

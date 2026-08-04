@@ -275,7 +275,14 @@ button.add {
   margin-right: 24px !important;
   overflow: hidden !important;
   align-self: stretch;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box !important;
+}
+
+.calendar-panel > .fc {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .fc {
